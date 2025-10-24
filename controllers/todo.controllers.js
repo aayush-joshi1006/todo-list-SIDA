@@ -1,26 +1,27 @@
 import mongoose from "mongoose";
 import todoModel from "../models/todo.models.js";
 
+// Get all todos
 export const getAllTodos = async (req, res) => {
   try {
     const todos = await todoModel.find();
-
     return res.status(200).json({ todos: todos });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+// Get all completed todos
 export const getCompletedTodos = async (req, res) => {
   try {
     const completedTodos = await todoModel.find({ isCompleted: true });
-
     return res.status(200).json({ completedTodos });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+// Get a specific todo by id
 export const getCurrentTodo = async (req, res) => {
   let currentId = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(currentId)) {
@@ -31,16 +32,15 @@ export const getCurrentTodo = async (req, res) => {
     if (!currentTodo) {
       return res.status(404).json({ message: "Todo Not Found" });
     }
-
     return res.status(200).json(currentTodo);
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+// Add a new todo
 export const addTodo = async (req, res) => {
   const { title, description, isCompleted } = req.body;
-
   if (!title || !description) {
     return res
       .status(400)
@@ -55,7 +55,6 @@ export const addTodo = async (req, res) => {
       description: description.trim(),
       isCompleted: completedStatus,
     });
-
     return res
       .status(201)
       .json({ message: "Todo created successfully", newTodo });
@@ -64,6 +63,7 @@ export const addTodo = async (req, res) => {
   }
 };
 
+// Edit a todo by id
 export const editTodo = async (req, res) => {
   let currentId = req.params.id;
   let { title, description, isCompleted } = req.body;
@@ -107,7 +107,7 @@ export const editTodo = async (req, res) => {
 
   try {
     const updatedTodo = await todoModel.findByIdAndUpdate(
-      todoId,
+      currentId,
       { $set: updateFields },
       { new: true, runValidators: true }
     );
@@ -116,15 +116,15 @@ export const editTodo = async (req, res) => {
       return res.status(404).json({ message: "Todo not found" });
     }
 
-    return res.status(200).json({
-      message: "Todo updated successfully",
-      todo: updatedTodo,
-    });
+    return res
+      .status(200)
+      .json({ message: "Todo updated successfully", todo: updatedTodo });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+// Update only the status of a todo
 export const setStatus = async (req, res) => {
   const todoId = req.params.id;
   const { isCompleted } = req.body;
@@ -138,6 +138,7 @@ export const setStatus = async (req, res) => {
       .status(400)
       .json({ message: "isCompleted must be provided as a boolean" });
   }
+
   try {
     const updatedTodo = await todoModel.findByIdAndUpdate(
       todoId,
@@ -149,20 +150,21 @@ export const setStatus = async (req, res) => {
       return res.status(404).json({ message: "Todo not found" });
     }
 
-    return res.status(200).json({
-      message: "Todo status updated successfully",
-      todo: updatedTodo,
-    });
+    return res
+      .status(200)
+      .json({ message: "Todo status updated successfully", todo: updatedTodo });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+// Delete a todo by id
 export const deleteTodo = async (req, res) => {
   const currentId = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(currentId)) {
     return res.status(400).json({ message: "Invalid Todo ID format" });
   }
+
   try {
     const deletedTodo = await todoModel.findByIdAndDelete(currentId);
     if (!deletedTodo) {
